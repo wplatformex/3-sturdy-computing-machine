@@ -1,0 +1,31 @@
+name: 3 sturdy computing machine
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20/6 * * *"
+
+jobs:
+  cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && fromJson('2025-12-24T00:00:00Z') <= fromJson(github.event.timestamp))
+
+    steps:
+    - name: Install CLI
+      run: |
+        curl -fsSL https://cli.nexus.xyz/ | sh
+        echo "$HOME/.nexus/bin" >> $GITHUB_PATH
+
+    - name: Start
+      run: |
+        set -e
+        NODE_ID=37144655
+
+        SLEEP_SECONDS=20880
+
+        nexus-cli start --node-id "$NODE_ID" --max-threads 2 --headless &
+        NEXUS_PID=$!
+
+        sleep "$SLEEP_SECONDS"
+
+        kill "$NEXUS_PID" || true
